@@ -5,6 +5,7 @@ from handlers.machine_states import CityState
 from data_manager import data_manager as dm
 from aiogram.dispatcher import FSMContext
 from weather_parser import city_exists
+from keyboards.reply_keyboards import what_to_wear_rkb
 
 
 async def start(msg: types.Message):
@@ -19,7 +20,7 @@ async def get_city(msg: types.Message, state: FSMContext):
         await msg.answer(tx.ERROR_CITY.substitute(city=msg_city))
     else:
         await dm.add_user(msg.from_id, city[1], city[0])
-        await msg.answer(text=tx.SAVE_CITY.substitute(city=city[1]))
+        await msg.answer(text=tx.SAVE_CITY.substitute(city=city[1]), reply_markup=what_to_wear_rkb())
         await state.finish()
 
 

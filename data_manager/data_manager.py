@@ -77,4 +77,33 @@ async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
         return {'name': city[0],
                 'id': city[1]}
 
-# asyncio.run(get_city(1234))
+
+async def get_times() -> list[str]:
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        times = await cur.execute(
+            f"SELECT DISTINCT time FROM users"
+        )
+        times = await times.fetchall()
+        return times
+
+
+async def get_users_with_time_city(time: str, city_id: int):
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        users = await cur.execute(
+            f"""SELECT user_id FROM users WHERE
+time = '{time}' AND city_id = {city_id}"""
+        )
+        users = await users.fetchall()
+        return users
+
+
+async def get_cities_with_time(time: str) -> list[list[id, str]]:
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        cities = await cur.execute(
+            f"SELECT DISTINCT city_id, city FROM users WHERE time = '{time}'"
+        )
+        cities = await cities.fetchall()
+        return cities

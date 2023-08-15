@@ -13,8 +13,7 @@ async def what_to_wear(msg: types.Message):
     city = await dm.get_city(msg.from_id)
     if city is not None:
         weather = await get_weather(city['id'])
-        await msg.answer(text=tx.WEATHER_TODAY.substitute(user_name=msg.from_user.first_name,
-                                                          city_name=city['name'],
+        await msg.answer(text=tx.WEATHER_TODAY.substitute(city_name=city['name'],
                                                           max_t=weather['max_t'],
                                                           min_t=weather['min_t'],
                                                           descr=weather['descr']))

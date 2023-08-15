@@ -4,6 +4,10 @@ from typing import Union
 
 
 async def get_weather(id: int) -> dict[str, Union[int, str]]:
+    """
+    :param id: Айди города
+    :return: словарь с погодой
+    """
     gm = aiopygismeteo.Gismeteo()
     days = await gm.step24.by_id(id, days=3, as_list=True)
     return {
@@ -16,7 +20,10 @@ async def get_weather(id: int) -> dict[str, Union[int, str]]:
 
 async def city_exists(city: str) -> Union[bool, list]:
     gm = aiopygismeteo.Gismeteo()
-    search_results = await gm.search.by_query(city)
+    try:
+        search_results = await gm.search.by_query(city)
+    except Exception:
+        return False
     if len(search_results) == 0:
         return False
     else:

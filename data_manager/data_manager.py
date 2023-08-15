@@ -18,12 +18,12 @@ from typing import Union
 # JOIN - объединение данных из таблиц по условию
 # UNION - объединение таблиц без повторов данных
 
-base_file = 'users.db'
+base_file = 'data_manager/users.db'
 
 
 def start():
     global base_file
-    with connect('users.db') as con:
+    with connect(base_file) as con:
         cur = con.cursor()
         print('Создали файл бд')
         cur.execute("""CREATE TABLE IF NOT EXISTS users (
@@ -78,7 +78,7 @@ async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
                 'id': city[1]}
 
 
-async def get_times() -> list[str]:
+async def get_times() -> list[list[str]]:
     async with ac(base_file) as con:
         cur = await con.cursor()
         times = await cur.execute(
@@ -88,7 +88,7 @@ async def get_times() -> list[str]:
         return times
 
 
-async def get_users_with_time_city(time: str, city_id: int):
+async def get_users_with_time_city(time: str, city_id: int) -> list[list[int]]:
     async with ac(base_file) as con:
         cur = await con.cursor()
         users = await cur.execute(
@@ -107,3 +107,12 @@ async def get_cities_with_time(time: str) -> list[list[id, str]]:
         )
         cities = await cities.fetchall()
         return cities
+
+
+async def set_time(id: int, time: str) -> None:
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        await cur.execute(
+            f"UPDATE users SET time = '{time}' WHERE user_id = {id}"
+        )
+        await con.commit()

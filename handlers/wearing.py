@@ -2,14 +2,14 @@
 from aiogram import Dispatcher, types
 import texts as tx
 from data_manager import data_manager as dm
-from weather_parser import get_weather
-from clothes import what_to_wear as cloth
+from modules.weather_parser import get_weather
+from modules.get_clothes import what_to_wear as cloth
 
 
 # from weather_parser import
 
 
-async def what_to_wear(msg: types.Message):
+async def what_to_wear_today(msg: types.Message):
     city = await dm.get_city(msg.from_id)
     if city is not None:
         weather = await get_weather(city['id'])
@@ -22,4 +22,4 @@ async def what_to_wear(msg: types.Message):
 
 
 def register_wearing(dp: Dispatcher) -> None:
-    dp.register_message_handler(what_to_wear, content_types='text', text='Что надеть?')
+    dp.register_message_handler(what_to_wear_today, content_types='text', text='Что надеть?')

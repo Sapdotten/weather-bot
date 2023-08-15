@@ -1,15 +1,14 @@
 import asyncio
-from aiogram import Bot, Dispatcher, executor
-from configs import TOKEN_API
-from handlers.start import register
+from aiogram import Bot, Dispatcher
+from handlers.commands import register
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from data_manager.data_manager import start
-from weather_parser import get_weather
 from handlers.wearing import register_wearing
-from scheduler import on_startup
-from functools import partial
+from modules.scheduler import on_startup
+import os
+from dotenv import load_dotenv
 
-global bot
+
 def register_handlers(dp):
     register(dp)
     register_wearing(dp)
@@ -19,8 +18,9 @@ async def main() -> None:
     """
     Entry point
     """
-    # print(load_dotenv('.env'))
-    # token = os.getenv("TOKEN_API")
+    load_dotenv('.env')
+    TOKEN_API = os.getenv('TOKEN_API')
+
     bot = Bot(TOKEN_API)
     storage = MemoryStorage()
     dp = Dispatcher(bot, storage=storage)
@@ -38,5 +38,5 @@ async def main() -> None:
 
 
 if __name__ == '__main__':
-    asyncio.get_event_loop().run_until_complete(main())
-
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())

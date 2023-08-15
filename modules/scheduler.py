@@ -2,11 +2,11 @@ import asyncio
 
 import aioschedule
 import aioschedule as aios
-from weather_parser import get_weather
-from clothes import what_to_wear
+from modules.weather_parser import get_weather
+from modules.get_clothes import what_to_wear
 import texts as tx
 from aiogram import Bot
-import data_manager.data_manager as bd
+import data_manager.data_manager as db
 
 
 # @dp.message_handler()
@@ -42,16 +42,16 @@ async def mail_by_city(bot: Bot, ids: list[int], city_id: int, city_name: str) -
 
 async def mail(bot: Bot, time: str) -> None:
     print('запустили рассылку на единое время')
-    cities = await bd.get_cities_with_time(time)
+    cities = await db.get_cities_with_time(time)
     for city in cities:
         print(f'город: {city[0], city[1]}')
-        users = await bd.get_users_with_time_city(time, city[0])
+        users = await db.get_users_with_time_city(time, city[0])
         await mail_by_city(bot, users, city[0], city[1])
 
 
 async def scheduler(bot) -> None:
     print('запуск scheduler')
-    times = await bd.get_times()
+    times = await db.get_times()
     for time in times:
         print('добавили корутину на время', time[0])
         aios.every().day.at(time[0]).do(mail, bot=bot, time=time[0])

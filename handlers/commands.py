@@ -24,7 +24,7 @@ async def get_city(msg: types.Message, state: FSMContext):
     if not city:
         await msg.answer(tx.ERROR_CITY.substitute(city=msg_city))
     else:
-        await db.add_user(msg.from_id, city[1], city[0])
+        await db.add_user(msg.from_id, city[1], city[0], city[2])
         await msg.answer(text=tx.SAVE_CITY.substitute(city=city[1]), reply_markup=std_keyboard())
         await state.finish()
 
@@ -39,8 +39,10 @@ async def get_time_proc(cbq: types.CallbackQuery):
     time = await TimePicker.process_data(cbq)
     print(f'set_time {time}')
     await cbq.message.answer(text=tx.CHANGED_TIME.substitute(time=time))
+    old_time = await db.get_time_server(cbq.from_user.id)
     await db.set_time(cbq.from_user.id, time)
-    await cancel(cbq.bot)
+    time = await db.get_time_server(cbq.from_user.id)
+    await cancel(cbq.bot, old_time, time)
 
 
 async def change_city(msg: types.Message):

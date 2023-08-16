@@ -2,6 +2,7 @@ from asqlite3 import connect as ac
 import os
 from sqlite3 import connect
 from typing import Union
+from modules.helpers import incr_time
 
 # UPDATE
 # DELETE FROM table_name
@@ -37,7 +38,7 @@ def start():
         print('Сохранили')
 
 
-async def add_user(user_id: int, city: str, city_id: int):
+async def add_user(user_id: int, city: str, city_id: int, offset: int):
     print('Запуск добавления пользователя ', user_id)
     async with ac(base_file) as con:
         print('Установка соединения')
@@ -46,23 +47,13 @@ async def add_user(user_id: int, city: str, city_id: int):
         print('Собрали данные о пользoвателях')
         if await info.fetchone() is None:
             print('Такого пользователя еще не было')
-            await cur.execute(f"INSERT INTO users (user_id, city, city_id) VALUES({user_id}, '{city}', {city_id})")
+            await cur.execute(
+                f"INSERT INTO users (user_id, city, city_id, offset) VALUES({user_id}, '{city}', {city_id}, {offset})")
             print('Пользователь добавлен')
             await con.commit()
         else:
-            await cur.execute(f"""UPDATE users SET city = '{city}', city_id = {city_id} WHERE user_id = {user_id}""")
-            await con.commit()
-
-
-async def change_city(user_id: int, city: str):
-    async with ac(base_file) as con:
-        cur = await con.cursor()
-        info = await cur.execute(f"""SELECT * FROM users WHERE user_id = {user_id}""")
-        if await info.fetchone() is None:
-            await cur.execute(f"INSERT INTO users (user_id, city) VALUES({user_id}, '{city}')")
-            await con.commit()
-        else:
-            await cur.execute(f"""UPDATE users SET city = '{city}' WHERE user_id = {user_id}""")
+            await cur.execute(
+                f"""UPDATE users SET city = '{city}', city_id = {city_id}, offset = {offset} WHERE user_id = {user_id}""")
             await con.commit()
 
 
@@ -108,7 +99,23 @@ async def get_cities_with_time(time: str) -> list[list[id, str]]:
         return cities
 
 
+async def get_offset(id: int) -> int:
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        try:
+            offset = await cur.execute(
+                f"SELECT offset FROM users WHERE user_id = {id}"
+            )
+            offset = await offset.fetchone()
+            print(offset)
+            return offset[0]
+        except Exception as _ex:
+            print(_ex)
+
+
 async def set_time(id: int, time: str) -> bool:
+    offset = await get_offset(id)
+    time = await incr_time(offset, time)
     async with ac(base_file) as con:
         cur = await con.cursor()
         try:
@@ -121,3 +128,17 @@ async def set_time(id: int, time: str) -> bool:
             print('Не удалось сохранить время в бд')
             pass
         return False
+
+
+async def get_time_server(id: int) -> Union[None, str]:
+    """Возвращает время отправки, согласованное со временем сервера"""
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        try:
+            time = await cur.execute(
+                f"SELECT time FROM users WHERE user_id = {id}"
+            )
+            time = await time.fetchone()
+            return time[0]
+        except Exception:
+            return None

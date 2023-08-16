@@ -28,5 +28,8 @@ async def city_exists(city: str) -> Union[bool, list]:
     if len(search_results) == 0:
         return False
     else:
-        print(f'Is exists, result is: {search_results[0].id, search_results[0].name}')
-        return [search_results[0].id, search_results[0].name]
+        offset = await gm.current.by_id(search_results[0].id)
+        offset = offset.date.time_zone_offset//60-4
+        return [search_results[0].id, search_results[0].name, offset]
+
+

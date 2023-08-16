@@ -32,28 +32,33 @@ async def mail(bot: Bot, time: str) -> None:
         await mail_by_city(bot, users, city[0], city[1])
 
 
-async def scheduler(bot) -> None:
+async def scheduler(bot: Bot, times: list[list[str]]) -> None:
     global sched
     print('запуск scheduler')
-    times = await db.get_times()
     for time in times:
         print('добавили корутину на время', time[0])
         hours = time[0].split(':')
-        sched.add_job(mail, 'cron', hour=int(hours[0]), minute=int(hours[1]), args=(bot, time[0]), misfire_grace_time = None)
+        try:
+            sched.add_job(mail, 'cron', hour=int(hours[0]), minute=int(hours[1]), args=(bot, time[0]),
+                          misfire_grace_time=None, id=time[0])
+        except Exception:
+            pass
 
 
-async def cancel(bot: Bot) -> None:
+async def cancel(bot: Bot, old_time, new_time) -> None:
     global sched
-    jobs = sched.get_jobs()
-    for job in jobs:
-        id = job.id
-        sched.remove_job(id)
-    await scheduler(bot)
+    sched.remove_job(old_time)
+    try:
+        sched.remove_job(new_time)
+    except Exception:
+        pass
+    await scheduler(bot, [[new_time], [old_time]])
 
 
 async def start_scheduler(bot: Bot):
     global sched
     print('запуск шедулера')
     sched = AsyncIOScheduler()
-    await scheduler(bot)
+    times = await db.get_times()
+    await scheduler(bot, times)
     sched.start()

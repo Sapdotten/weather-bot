@@ -19,6 +19,7 @@ async def get_weather(id: int) -> dict[str, Union[int, str]]:
 
 
 async def city_exists(city: str) -> Union[bool, list]:
+    print(f'Is city {city} exists?')
     gm = aiopygismeteo.Gismeteo()
     try:
         search_results = await gm.search.by_query(city)
@@ -27,4 +28,5 @@ async def city_exists(city: str) -> Union[bool, list]:
     if len(search_results) == 0:
         return False
     else:
+        print(f'Is exists, result is: {search_results[0].id, search_results[0].name}')
         return [search_results[0].id, search_results[0].name]

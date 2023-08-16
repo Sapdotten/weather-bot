@@ -88,7 +88,7 @@ class TimePicker:
         btn = Buttons(hours)
         return btn.get_markup('minute',
                               [['Select a minute'],
-                               [' ', '55', '00', '5', ' '],
+                               [' ', '55', '00', '05', ' '],
                                ['50', ' ', ' ', ' ', '10'],
                                ['45', ' ', ' ', ' ', '15'],
                                ['40', ' ', ' ', ' ', '20'],

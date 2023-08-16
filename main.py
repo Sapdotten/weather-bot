@@ -4,9 +4,9 @@ from handlers.commands import register
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from data_manager.data_manager import start
 from handlers.wearing import register_wearing
-from modules.scheduler import on_startup
 import os
 from dotenv import load_dotenv
+from modules.scheduler import start_scheduler
 
 
 def register_handlers(dp):
@@ -15,6 +15,7 @@ def register_handlers(dp):
 
 
 async def main() -> None:
+    global bot
     """
     Entry point
     """
@@ -26,12 +27,13 @@ async def main() -> None:
     dp = Dispatcher(bot, storage=storage)
     start()
     register_handlers(dp)
-    # on_startup_with_args = partial(on_startup, bot=bot)
+
 
     try:
         await dp.skip_updates()
-        await on_startup(bot)
+        await start_scheduler(bot)
         await dp.start_polling()
+
 
     except Exception as _ex:
         print(_ex)
@@ -40,3 +42,4 @@ async def main() -> None:
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     loop.run_until_complete(main())
+

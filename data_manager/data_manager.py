@@ -71,7 +71,6 @@ async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
         cur = await con.cursor()
         city = await cur.execute(f"""SELECT city, city_id FROM users WHERE user_id ={user_id}""")
         city = await city.fetchone()
-        await con.commit()
         if city is None:
             return None
         return {'name': city[0],
@@ -109,10 +108,16 @@ async def get_cities_with_time(time: str) -> list[list[id, str]]:
         return cities
 
 
-async def set_time(id: int, time: str) -> None:
+async def set_time(id: int, time: str) -> bool:
     async with ac(base_file) as con:
         cur = await con.cursor()
-        await cur.execute(
-            f"UPDATE users SET time = '{time}' WHERE user_id = {id}"
-        )
-        await con.commit()
+        try:
+            await cur.execute(
+                f"UPDATE users SET time = '{time}' WHERE user_id = {id}"
+            )
+            await con.commit()
+            return True
+        except Exception:
+            print('Не удалось сохранить время в бд')
+            pass
+        return False

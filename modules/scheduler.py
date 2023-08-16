@@ -1,33 +1,16 @@
 import asyncio
-
-import aioschedule
-import aioschedule as aios
 from modules.weather_parser import get_weather
 from modules.get_clothes import what_to_wear
 import texts as tx
 from aiogram import Bot
 import data_manager.data_manager as db
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+
+sched: AsyncIOScheduler
 
 
-# @dp.message_handler()
-# async def choose_your_dinner():
-#     for user in set(the_users_without_dinner()):
-#         await bot.send_message(chat_id = user, text = "Хей🖖 не забудь
-#         выбрать свой ужин сегодня", reply_markup = menu_garnish)
-#
-# async def scheduler():
-#     aioschedule.every().day.at("17:45").do(choose_your_dinner)
-#     while True:
-#         await aioschedule.run_pending()
-#         await asyncio.sleep(1)
-# async def on_startup(dp): 
-#     asyncio.create_task(scheduler())
-# 
-# if __name__ == '__main__':
-#     executor.start_polling(on_startup=on_startup)
-
-async def mail_by_city(bot: Bot, ids: list[int], city_id: int, city_name: str) -> None:
-    print('зфпустили рассылку на единый город')
+async def mail_by_city(bot: Bot, ids: list[list[int]], city_id: int, city_name: str) -> None:
+    print('запустили рассылку на единый город')
     weather = await get_weather(city_id)
     text1 = tx.WEATHER_TODAY.substitute(city_name=city_name,
                                         max_t=weather['max_t'],
@@ -35,7 +18,7 @@ async def mail_by_city(bot: Bot, ids: list[int], city_id: int, city_name: str) -
                                         descr=weather['descr'])
     text2 = await what_to_wear(weather['comfort'], weather['descr'])
     for id in ids:
-        print('id получателя: ', id)
+        print('id получателя: ', id[0])
         await bot.send_message(chat_id=id[0], text=text1)
         await bot.send_message(chat_id=id[0], text=text2)
 
@@ -50,16 +33,27 @@ async def mail(bot: Bot, time: str) -> None:
 
 
 async def scheduler(bot) -> None:
+    global sched
     print('запуск scheduler')
     times = await db.get_times()
     for time in times:
         print('добавили корутину на время', time[0])
-        aios.every().day.at(time[0]).do(mail, bot=bot, time=time[0])
-    while True:
-        await aioschedule.run_pending()
-        await asyncio.sleep(1)
+        hours = time[0].split(':')
+        sched.add_job(mail, 'cron', hour=int(hours[0]), minute=int(hours[1]), args=(bot, time[0]), misfire_grace_time = None)
 
 
-async def on_startup(bot: Bot):
-    print('запуск онтсратпа')
-    asyncio.create_task(scheduler(bot))
+async def cancel(bot: Bot) -> None:
+    global sched
+    jobs = sched.get_jobs()
+    for job in jobs:
+        id = job.id
+        sched.remove_job(id)
+    await scheduler(bot)
+
+
+async def start_scheduler(bot: Bot):
+    global sched
+    print('запуск шедулера')
+    sched = AsyncIOScheduler()
+    await scheduler(bot)
+    sched.start()

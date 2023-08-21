@@ -9,6 +9,7 @@ import os
 from dotenv import load_dotenv
 from modules.scheduler import start_scheduler
 from handlers.commands import command_router
+from aiogram.client.session.aiohttp import AiohttpSession
 
 
 def register_handlers(dp):
@@ -22,8 +23,9 @@ async def main() -> None:
     load_dotenv('.env')
     TOKEN_API = os.getenv('TOKEN_API')
     print('token_api is', TOKEN_API)
+    session = AiohttpSession()
 
-    bot = Bot(TOKEN_API)
+    bot = Bot(TOKEN_API, session=session)
     register_bot(bot)
     # storage = MemoryStorage()
     dp = Dispatcher()

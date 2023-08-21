@@ -1,12 +1,12 @@
 import asyncio
 from aiogram import Bot
-from aiogram.methods.delete_webhook import DeleteWebhook
+#from aiogram.methods.delete_webhook import DeleteWebhook
 from aiogram import Dispatcher
 from handlers.commands import register_bot
 from data_manager.data_manager import start
 from handlers.wearing import wearing_router
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from modules.scheduler import start_scheduler
 from handlers.commands import command_router
 from aiogram.client.session.aiohttp import AiohttpSession

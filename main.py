@@ -20,8 +20,9 @@ async def main() -> None:
     """
     Entry point
     """
-    load_dotenv('.env')
-    TOKEN_API = os.getenv('TOKEN_API')
+    #load_dotenv('.env')
+    #TOKEN_API = os.getenv('TOKEN_API')
+    TOKEN_API = os.environ["TOKEN_API"]
     print('token_api is', TOKEN_API)
     session = AiohttpSession()
 

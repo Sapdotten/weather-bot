@@ -1,13 +1,13 @@
-from aiogram.dispatcher.filters import BoundFilter
+from aiogram.filters import BaseFilter
 from aiogram import types
 from keyboards.timepicker.time_keyboard import TimePicker, TimeCallback
 
 
-class TimeFilter(BoundFilter):
-    async def check(self, cbq: types.CallbackQuery):
+class TimeFilter(BaseFilter):
+    async def __call__(self, cbq: types.CallbackQuery):
         if not cbq.data.startswith('time:'):
             return False
-        data = TimeCallback.deparse(cbq['data'])
+        data = TimeCallback.deparse(cbq.data)
         if data['num'] == '':
             await cbq.answer()
             return False

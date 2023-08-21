@@ -1,19 +1,25 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.callback_data import CallbackData
+from aiogram.filters.callback_data import CallbackData
 from typing import List
 from aiogram import types
 
 
+class cb_data(CallbackData, prefix = 'time'):
+    type: str
+    num: str
+    data: str
+
+
 class TimeCallback:
     args: tuple[str] = ('time', 'type', 'num', 'data')
-    cb_data: CallbackData = CallbackData('time', 'type', 'num', 'data')
+    # cb_data: CallbackData = CallbackData('time', 'type', 'num', 'data')
     data: str
 
     def __init__(self, data):
         self.data = data
 
     def get_data(self, type: str, num: str) -> str:
-        return self.cb_data.new(type=type, num=num, data=self.data)
+        return cb_data(type=type, num=num, data=self.data).pack()
 
     @classmethod
     def deparse(cls, data: str) -> dict[str, str]:
@@ -59,15 +65,15 @@ class Buttons:
 class TimePicker:
     cb_data_h = 'hour'
     cb_data_m = 'minute'
-    TimeCallback = CallbackData('time', 'type', 'num')
+    TimeCallback = cb_data
 
     @classmethod
     def bt_h(cls, hour: str):
-        return InlineKeyboardButton(hour, callback_data=cls.TimeCallback.new(type='hour', num=hour))
+        return InlineKeyboardButton(text=hour, callback_data=cls.TimeCallback(type='hour', num=hour).pack())
 
     @classmethod
     def bt_m(cls, _min: str):
-        return InlineKeyboardButton(_min, callback_data=cls.cb_data_m + _min)
+        return InlineKeyboardButton(text=_min, callback_data=cls.cb_data_m + _min)
 
     @classmethod
     async def start(cls) -> InlineKeyboardMarkup:
@@ -97,6 +103,6 @@ class TimePicker:
 
     @classmethod
     async def process_data(cls, cb: types.CallbackQuery) -> str:
-        cb = TimeCallback.deparse(cb['data'])
-        time = cb['data']+':'+cb['num']
+        cb = TimeCallback.deparse(cb.data)
+        time = cb['data'] + ':' + cb['num']
         return time

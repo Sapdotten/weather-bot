@@ -1,5 +1,5 @@
-python-telegram-bot
 python-dotenv
 aiogram
 asqlite3
 aiopygismeteo
+APScheduler

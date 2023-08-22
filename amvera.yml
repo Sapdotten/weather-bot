@@ -2,10 +2,10 @@ meta:
   environment: python
   toolchain:
     name: pip
-    version: 3.9
+    version: 3.8
 build:
   requirementsPath: requirements.txt
 run:
-  command: python3
+  scriptName: main.py
   persistenceMount: /data
   containerPort: 80

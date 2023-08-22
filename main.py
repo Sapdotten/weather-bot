@@ -20,7 +20,7 @@ async def main() -> None:
     """
     Entry point
     """
-    print('Program starts')
+
     # load_dotenv('.env')
     # TOKEN_API = os.getenv('TOKEN_API')
     TOKEN_API = os.environ["TOKEN_API"]
@@ -37,6 +37,6 @@ async def main() -> None:
     await start_scheduler(bot)
     await dp.start_polling(bot)
 
-
+print('Program starts')
 if __name__ == '__main__':
     asyncio.run(main())

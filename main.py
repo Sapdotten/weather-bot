@@ -34,9 +34,13 @@ async def main() -> None:
     dp = Dispatcher()
     start()
     register_handlers(dp)
-    await bot.delete_webhook()
-    await start_scheduler(bot)
-    await dp.start_polling(bot)
+    try:
+        await bot.delete_webhook()
+        await start_scheduler(bot)
+        await dp.start_polling(bot)
+    except Exception as ex:
+        print(ex)
+
 
 print('Program starts')
 if __name__ == '__main__':

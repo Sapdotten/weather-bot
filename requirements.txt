@@ -1,4 +1,5 @@
 aiogram
 asqlite3
 aiopygismeteo
+APScheduler
 

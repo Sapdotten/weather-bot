@@ -6,6 +6,6 @@ meta:
 build:
   requirementsPath: requirements.txt
 run:
-  command: python3
+  command: python
   persistenceMount: /data
   containerPort: 80

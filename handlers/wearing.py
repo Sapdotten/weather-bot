@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from aiogram import types
 import texts as tx
-from data_manager import data_manager as dm
+from data import data_manager as dm
 from modules.weather_parser import get_weather_now, get_weather_today
 from modules.get_clothes import what_to_wear as cloth
 from keyboards.reply_keyboards import std_keyboard

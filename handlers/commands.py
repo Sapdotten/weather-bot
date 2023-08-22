@@ -1,7 +1,7 @@
 from aiogram import types, Bot
 import texts as tx
 from handlers.machine_states import CityState
-from data_manager import data_manager as db
+from data import data_manager as db
 from aiogram.fsm.context import FSMContext
 from modules.weather_parser import city_exists
 from keyboards.reply_keyboards import std_keyboard

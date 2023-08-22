@@ -3,7 +3,7 @@ from modules.weather_parser import get_weather_today
 from modules.get_clothes import what_to_wear
 import texts as tx
 from aiogram import Bot
-import data_manager.data_manager as db
+import data.data_manager as db
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 sched: AsyncIOScheduler

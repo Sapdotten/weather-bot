@@ -1,4 +1,6 @@
 import asyncio
+import time
+
 from aiogram import Bot
 # from aiogram.methods.delete_webhook import DeleteWebhook
 from aiogram import Dispatcher
@@ -20,7 +22,7 @@ async def main() -> None:
     """
     Entry point
     """
-
+    time.sleep(5)
     #load_dotenv('.env')
     #TOKEN_API = os.getenv('TOKEN_API')
     TOKEN_API = os.environ["TOKEN_API"]

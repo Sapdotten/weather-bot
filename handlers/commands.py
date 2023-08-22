@@ -69,6 +69,14 @@ async def switcher(msg: types.Message):
         await msg.answer(text=tx.CHANGED_AUTO_SEND.substitute(status='отключена'))
     else:
         await msg.answer(text=tx.CHANGED_AUTO_SEND.substitute(status='включена'))
+        time = await db.get_time_server(msg.from_user.id)
+        await cancel(bot, time, time)
+
+
+@command_router.message(Command(commands=["report"]))
+async def report(msg: types.Message):
+    if msg.from_user.id == 859743151:
+        await msg.answer(text=f'Пользователей в базе данных: {await db.get_count_of_users()}')
 
 
 def register_bot(_bot: Bot):

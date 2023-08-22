@@ -40,15 +40,15 @@ async def scheduler(bot: Bot, times: list[list[str]]) -> None:
         hours = time[0].split(':')
         try:
             sched.add_job(mail, 'cron', hour=int(hours[0]), minute=int(hours[1]), args=(bot, time[0]),
-                          misfire_grace_time=None, id=time[0])
+                          misfire_grace_time=60, id=time[0])
         except Exception:
             pass
 
 
 async def cancel(bot: Bot, old_time, new_time) -> None:
     global sched
-    sched.remove_job(old_time)
     try:
+        sched.remove_job(old_time)
         sched.remove_job(new_time)
     except Exception:
         pass

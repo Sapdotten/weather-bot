@@ -19,7 +19,7 @@ from modules.helpers import incr_time
 # JOIN - объединение данных из таблиц по условию
 # UNION - объединение таблиц без повторов данных
 
-base_file = 'data_manager/users.db'
+base_file = 'data/users.db'
 
 
 def start():
@@ -32,6 +32,7 @@ def start():
         city TEXT NOT NULL,
         time TEXT DEFAULT "8:00",
         auto_send BOOL DEFAULT TRUE,
+        city_id INTEGER NOT NULL DEFAULT NONE,
         offset INTEGER
         )""")
         print('Создали таблицу')
@@ -165,3 +166,13 @@ async def set_auto_send_status(id: int, status: bool):
             f"UPDATE users SET auto_send = {status} WHERE user_id = {id}"
         )
         await con.commit()
+
+
+async def get_count_of_users():
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        count = await cur.execute(
+            "SELECT COUNT(user_id) as users FROM users"
+        )
+        count = await count.fetchone()
+        return count[0]

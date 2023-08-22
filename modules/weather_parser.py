@@ -45,3 +45,4 @@ async def city_exists(city: str) -> Union[bool, list]:
         offset = await gm.current.by_id(search_results[0].id)
         offset = offset.date.time_zone_offset // 60 - 4
         return [search_results[0].id, search_results[0].name, offset]
+

@@ -31,7 +31,8 @@ def start():
         user_id INTEGER PRIMARY KEY NOT NULL,
         city TEXT NOT NULL,
         time TEXT DEFAULT "8:00",
-        auto_send BOOL DEFAULT TRUE
+        auto_send BOOL DEFAULT TRUE,
+        offset INTEGER
         )""")
         print('Создали таблицу')
         con.commit()
@@ -72,7 +73,7 @@ async def get_times() -> list[list[str]]:
     async with ac(base_file) as con:
         cur = await con.cursor()
         times = await cur.execute(
-            f"SELECT DISTINCT time FROM users"
+            f"SELECT DISTINCT time FROM users WHERE auto_send=TRUE"
         )
         times = await times.fetchall()
         return times
@@ -83,7 +84,7 @@ async def get_users_with_time_city(time: str, city_id: int) -> list[list[int]]:
         cur = await con.cursor()
         users = await cur.execute(
             f"""SELECT user_id FROM users WHERE
-time = '{time}' AND city_id = {city_id}"""
+time = '{time}' AND city_id = {city_id} AND auto_send=TRUE"""
         )
         users = await users.fetchall()
         return users
@@ -93,7 +94,7 @@ async def get_cities_with_time(time: str) -> list[list[id, str]]:
     async with ac(base_file) as con:
         cur = await con.cursor()
         cities = await cur.execute(
-            f"SELECT DISTINCT city_id, city FROM users WHERE time = '{time}'"
+            f"SELECT DISTINCT city_id, city FROM users WHERE time = '{time}' AND auto_send = TRUE"
         )
         cities = await cities.fetchall()
         return cities
@@ -142,3 +143,25 @@ async def get_time_server(id: int) -> Union[None, str]:
             return time[0]
         except Exception:
             return None
+
+
+async def get_auto_send_status(id: int) -> bool:
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        try:
+            status = await cur.execute(
+                f"SELECT auto_send FROM users WHERE user_id = {id}"
+            )
+        except Exception:
+            return False
+        status = await status.fetchone()
+        return status[0]
+
+
+async def set_auto_send_status(id: int, status: bool):
+    async with ac(base_file) as con:
+        cur = await con.cursor()
+        await cur.execute(
+            f"UPDATE users SET auto_send = {status} WHERE user_id = {id}"
+        )
+        await con.commit()

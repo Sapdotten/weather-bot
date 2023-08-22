@@ -37,13 +37,13 @@ async def get_city(msg: types.Message, state: FSMContext):
 
 
 @command_router.message(F.text == 'Изменить время рассылки')
-async def get_time(msg: types.Message):
+async def change_time(msg: types.Message):
     """Позволяет изменить время рассылки"""
     await msg.answer(text=tx.TO_CHANGE_TIME, reply_markup=await TimePicker.start())
 
 
 @command_router.callback_query(TimeFilter())
-async def get_time_proc(cbq: types.CallbackQuery):
+async def get_time(cbq: types.CallbackQuery):
     """Получает время, введенное пользователем"""
     time = await TimePicker.process_data(cbq)
     print(f'set_time {time}')
@@ -51,13 +51,24 @@ async def get_time_proc(cbq: types.CallbackQuery):
     old_time = await db.get_time_server(cbq.from_user.id)
     await db.set_time(cbq.from_user.id, time)
     time = await db.get_time_server(cbq.from_user.id)
-    await cancel(bot, old_time, time)
+    if await db.get_auto_send_status(cbq.from_user.id):
+        await cancel(bot, old_time, time)
 
 
 @command_router.message(F.text == 'Изменить город')
 async def change_city(msg: types.Message, state: FSMContext):
     await state.set_state(CityState.city)
     await msg.answer(text=tx.TO_CHANGE_CITY)
+
+
+@command_router.message(Command(commands=["switcher"]))
+async def switcher(msg: types.Message):
+    status = await db.get_auto_send_status(msg.from_user.id)
+    await db.set_auto_send_status(msg.from_user.id, not status)
+    if status:
+        await msg.answer(text=tx.CHANGED_AUTO_SEND.substitute(status='отключена'))
+    else:
+        await msg.answer(text=tx.CHANGED_AUTO_SEND.substitute(status='включена'))
 
 
 def register_bot(_bot: Bot):

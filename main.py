@@ -22,7 +22,6 @@ async def main() -> None:
     """
     Entry point
     """
-    time.sleep(5)
     #load_dotenv('.env')
     #TOKEN_API = os.getenv('TOKEN_API')
     TOKEN_API = os.environ["TOKEN_API"]
@@ -41,4 +40,5 @@ async def main() -> None:
 
 print('Program starts')
 if __name__ == '__main__':
+    time.sleep(5)
     asyncio.run(main())

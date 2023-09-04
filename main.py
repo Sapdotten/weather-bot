@@ -8,7 +8,7 @@ from handlers.commands import register_bot
 from data.data_manager import start
 from handlers.wearing import wearing_router
 import os
-#from dotenv import load_dotenv
+from dotenv import load_dotenv
 from modules.scheduler import start_scheduler
 from handlers.commands import command_router
 from aiogram.client.session.aiohttp import AiohttpSession
@@ -22,9 +22,9 @@ async def main() -> None:
     """
     Entry point
     """
-    #load_dotenv('.env')
-    #TOKEN_API = os.getenv('TOKEN_API')
-    TOKEN_API = os.environ["TOKEN_API"]
+    load_dotenv('.env')
+    TOKEN_API = os.getenv('TOKEN_API')
+    #TOKEN_API = os.environ["TOKEN_API"]
     print('token_api is', TOKEN_API)
     session = AiohttpSession()
 

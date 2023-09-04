@@ -1,5 +1,5 @@
 import asyncio
-from modules.weather_parser import get_weather_today
+from modules.weather_parser import get_weather
 from modules.get_clothes import what_to_wear
 import texts as tx
 from aiogram import Bot
@@ -11,11 +11,11 @@ sched: AsyncIOScheduler
 
 async def mail_by_city(bot: Bot, ids: list[list[int]], city_id: int, city_name: str) -> None:
     print('запустили рассылку на единый город')
-    weather = await get_weather_today(city_id)
-    text1 = tx.WEATHER_TODAY.substitute(city_name=city_name,
-                                        max_t=weather['max_t'],
-                                        min_t=weather['min_t'],
-                                        descr=weather['descr'])
+    weather = await get_weather(city_id)
+    text1 = tx.WEATHER_DAY.substitute(city_name=city_name,
+                                      max_t=weather['max_t'],
+                                      min_t=weather['min_t'],
+                                      descr=weather['descr'])
     text2 = await what_to_wear(weather['comfort'], weather['descr'])
     for id in ids:
         print('id получателя: ', id[0])

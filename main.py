@@ -9,7 +9,7 @@ from data.data_manager import start
 import data.data_manager as db
 from handlers.wearing import wearing_router
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 from modules.scheduler import start_scheduler
 from handlers.commands import command_router
 from aiogram.client.session.aiohttp import AiohttpSession

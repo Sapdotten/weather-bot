@@ -39,6 +39,7 @@ async def city_exists(city: str) -> Union[bool, list]:
     gm = aiopygismeteo.Gismeteo()
     try:
         search_results = await gm.search.by_query(city)
+        print(search_results)
     except Exception as ex:
         print(ex)
         return False

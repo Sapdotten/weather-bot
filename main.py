@@ -34,7 +34,6 @@ async def main() -> None:
     # storage = MemoryStorage()
     dp = Dispatcher()
     start()
-    await db.add_user(1098133332, 'Самара', 4618, 4)
     register_handlers(dp)
     try:
         await bot.delete_webhook()

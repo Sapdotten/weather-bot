@@ -11,7 +11,7 @@ sched: AsyncIOScheduler
 
 async def mail_by_city(bot: Bot, ids: list[list[int]], city_id: int, city_name: str) -> None:
     print('запустили рассылку на единый город')
-    weather = await get_weather(city_id)
+    weather = await get_weather(city_id, day=0)
     text1 = tx.WEATHER_DAY.substitute(city_name=city_name,
                                       max_t=weather['max_t'],
                                       min_t=weather['min_t'],

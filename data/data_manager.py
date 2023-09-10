@@ -45,15 +45,28 @@ async def add_user(user_id: int, city: str, city_id: int, offset: int):
         cur = await con.cursor()
         info = await cur.execute(f"""SELECT * FROM users WHERE user_id = {user_id}""")
         if await info.fetchone() is None:
-            await cur.execute(
-                f"INSERT INTO users (user_id, city, city_id, offset) VALUES({user_id}, '{city}', {city_id}, {offset})")
-            logging.info('New user has been added', {id: user_id})
+            while True:
+                try:
+                    await cur.execute(
+                        f"INSERT INTO users (user_id, city, city_id, offset) VALUES({user_id}, '{city}', {city_id}, {offset})")
+                    logging.info('New user has been added', {id: user_id})
+
+                    break
+                except Exception:
+                    logging.error("Can't add new user")
             await con.commit()
         else:
-            await cur.execute(
-                f"""UPDATE users SET city = '{city}', city_id = {city_id}, offset = {offset} WHERE user_id = {user_id}""")
-            logging.info('User already in db, upgrade data', {id: user_id})
+            while True:
+                try:
+                    await cur.execute(
+                        f"""UPDATE users SET city = '{city}', city_id = {city_id}, offset = {offset} WHERE user_id = {user_id}""")
+                    logging.info('User already in db, upgrade data', {id: user_id})
+
+                    break
+                except Exception:
+                    logging.error("Can't update data of user")
             await con.commit()
+
 
 
 async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
@@ -112,21 +125,20 @@ async def get_offset(id: int) -> int:
             print(_ex)
 
 
-async def set_time(id: int, time: str) -> bool:
+async def set_time(id: int, time: str):
     offset = await get_offset(id)
     time = await incr_time(offset, time)
     async with async_con(base_file) as con:
         cur = await con.cursor()
-        try:
-            await cur.execute(
-                f"UPDATE users SET time = '{time}' WHERE user_id = {id}"
-            )
-            await con.commit()
-            return True
-        except Exception:
-            logging.error("Can't save the time to database", {'id': id, 'time': time})
-            pass
-        return False
+        while True:
+            try:
+                await cur.execute(
+                    f"UPDATE users SET time = '{time}' WHERE user_id = {id}"
+                )
+                break
+            except Exception:
+                logging.error("Can't save the time to database", {'id': id, 'time': time})
+        await con.commit()
 
 
 async def get_time_server(id: int) -> Union[None, str]:
@@ -159,9 +171,14 @@ async def get_auto_send_status(id: int) -> bool:
 async def set_auto_send_status(id: int, status: bool):
     async with async_con(base_file) as con:
         cur = await con.cursor()
-        await cur.execute(
-            f"UPDATE users SET auto_send = {status} WHERE user_id = {id}"
-        )
+        while True:
+            try:
+                await cur.execute(
+                    f"UPDATE users SET auto_send = {status} WHERE user_id = {id}"
+                )
+                break
+            except Exception:
+                logging.error("Can't update auto_send")
         await con.commit()
 
 

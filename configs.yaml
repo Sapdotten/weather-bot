@@ -1,0 +1,7 @@
+db_file: data/users.db
+timezone: 0
+logging:
+  out: console
+  level: INFO
+  file: files/log.log
+env_mode: environ #or environ or getenv

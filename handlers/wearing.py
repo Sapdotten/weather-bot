@@ -3,7 +3,7 @@ from aiogram import types
 import texts as tx
 from data import data_manager as dm
 from modules.weather_parser import get_weather_now, get_weather
-from modules.get_clothes import what_to_wear as cloth
+import modules.get_clothes_new as cloth
 from keyboards.reply_keyboards import std_keyboard
 from aiogram.dispatcher.router import Router
 from aiogram import F
@@ -21,7 +21,8 @@ async def what_to_wear_now(msg: types.Message):
         await msg.answer(text=tx.WEATHER_NOW.substitute(city_name=city['name'],
                                                         temp=weather['temp'],
                                                         descr=weather['descr']))
-        dress = await cloth(weather['comfort'], weather['descr'])
+        logging.info('comfort t is %s', weather['comfort'])
+        dress = await cloth.get_clothes(weather['comfort'], weather['descr'])
         await msg.answer(text=dress, reply_markup=std_keyboard())
         if msg.from_user.id == 1161728791:
             await msg.answer(text='Сань, иди нахуй)')
@@ -38,7 +39,8 @@ async def what_to_wear_today(msg: types.Message):
                                                         max_t=weather['max_t'],
                                                         min_t=weather['min_t'],
                                                         descr=weather['descr']))
-        dress = await cloth(weather['comfort'], weather['descr'])
+        logging.info('comfort t is %s', weather['comfort'])
+        dress = await cloth.get_clothes(weather['comfort'], weather['descr'])
         await msg.answer(text=dress, reply_markup=std_keyboard())
         if msg.from_user.id == 1161728791:
             await msg.answer(text='Сань, иди нахуй)')
@@ -55,7 +57,7 @@ async def what_to_wear_tomorrow(msg: types.Message):
                                                         max_t=weather['max_t'],
                                                         min_t=weather['min_t'],
                                                         descr=weather['descr']))
-        dress = await cloth(weather['comfort'], weather['descr'])
+        dress = await cloth.get_clothes(weather['comfort'], weather['descr'])
         await msg.answer(text=dress, reply_markup=std_keyboard())
         if msg.from_user.id == 1161728791:
             await msg.answer(text='Сань, иди нахуй)')

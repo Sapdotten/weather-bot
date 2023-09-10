@@ -124,7 +124,7 @@ async def set_time(id: int, time: str) -> bool:
             await con.commit()
             return True
         except Exception:
-            print('Не удалось сохранить время в бд')
+            logging.error("Can't save the time to database", {'id': id, 'time': time})
             pass
         return False
 

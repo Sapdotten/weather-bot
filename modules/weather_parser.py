@@ -19,8 +19,6 @@ async def get_weather(id: int, day: int) -> dict[str, Union[int, str]]:
     }
 
 
-
-
 async def get_weather_now(id: int) -> dict[str, Union[int, str]]:
     """
     :param id: Айди города

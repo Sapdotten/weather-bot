@@ -1,6 +1,9 @@
 import yaml
 import os
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+except Exception:
+    pass
 
 global config
 

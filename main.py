@@ -19,6 +19,7 @@ async def main() -> None:
     """
     Entry point
     """
+    
     config_manager.start()
     logger.start()
 

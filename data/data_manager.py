@@ -1,8 +1,9 @@
-from asqlite3 import connect as ac
-import os
+from asqlite3 import connect as async_con
 from sqlite3 import connect
 from typing import Union
 from modules.helpers import incr_time
+import logging
+import config_manager
 
 # UPDATE
 # DELETE FROM table_name
@@ -19,14 +20,13 @@ from modules.helpers import incr_time
 # JOIN - объединение данных из таблиц по условию
 # UNION - объединение таблиц без повторов данных
 
-base_file = 'data/users.db'
-
 
 def start():
     global base_file
+    base_file = config_manager.db_file()
     with connect(base_file) as con:
         cur = con.cursor()
-        print('Создали файл бд')
+        logging.info('database file created')
         cur.execute("""CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY NOT NULL,
         city TEXT NOT NULL,
@@ -35,32 +35,29 @@ def start():
         city_id INTEGER NOT NULL DEFAULT NONE,
         offset INTEGER
         )""")
-        print('Создали таблицу')
+        logging.info('database table created')
         con.commit()
-        print('Сохранили')
 
 
 async def add_user(user_id: int, city: str, city_id: int, offset: int):
-    print('Запуск добавления пользователя ', user_id)
-    async with ac(base_file) as con:
-        print('Установка соединения')
+    logging.info('Adding a user', {id: user_id})
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         info = await cur.execute(f"""SELECT * FROM users WHERE user_id = {user_id}""")
-        print('Собрали данные о пользoвателях')
         if await info.fetchone() is None:
-            print('Такого пользователя еще не было')
             await cur.execute(
                 f"INSERT INTO users (user_id, city, city_id, offset) VALUES({user_id}, '{city}', {city_id}, {offset})")
-            print('Пользователь добавлен')
+            logging.info('New user has been added', {id: user_id})
             await con.commit()
         else:
             await cur.execute(
                 f"""UPDATE users SET city = '{city}', city_id = {city_id}, offset = {offset} WHERE user_id = {user_id}""")
+            logging.info('User already in db, upgrade data', {id: user_id})
             await con.commit()
 
 
 async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         city = await cur.execute(f"""SELECT city, city_id FROM users WHERE user_id ={user_id}""")
         city = await city.fetchone()
@@ -71,7 +68,7 @@ async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
 
 
 async def get_times() -> list[list[str]]:
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         times = await cur.execute(
             f"SELECT DISTINCT time FROM users WHERE auto_send=TRUE"
@@ -81,7 +78,7 @@ async def get_times() -> list[list[str]]:
 
 
 async def get_users_with_time_city(time: str, city_id: int) -> list[list[int]]:
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         users = await cur.execute(
             f"""SELECT user_id FROM users WHERE
@@ -92,7 +89,7 @@ time = '{time}' AND city_id = {city_id} AND auto_send=TRUE"""
 
 
 async def get_cities_with_time(time: str) -> list[list[id, str]]:
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         cities = await cur.execute(
             f"SELECT DISTINCT city_id, city FROM users WHERE time = '{time}' AND auto_send = TRUE"
@@ -102,7 +99,7 @@ async def get_cities_with_time(time: str) -> list[list[id, str]]:
 
 
 async def get_offset(id: int) -> int:
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         try:
             offset = await cur.execute(
@@ -118,7 +115,7 @@ async def get_offset(id: int) -> int:
 async def set_time(id: int, time: str) -> bool:
     offset = await get_offset(id)
     time = await incr_time(offset, time)
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         try:
             await cur.execute(
@@ -134,7 +131,7 @@ async def set_time(id: int, time: str) -> bool:
 
 async def get_time_server(id: int) -> Union[None, str]:
     """Возвращает время отправки, согласованное со временем сервера"""
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         try:
             time = await cur.execute(
@@ -147,7 +144,7 @@ async def get_time_server(id: int) -> Union[None, str]:
 
 
 async def get_auto_send_status(id: int) -> bool:
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         try:
             status = await cur.execute(
@@ -160,7 +157,7 @@ async def get_auto_send_status(id: int) -> bool:
 
 
 async def set_auto_send_status(id: int, status: bool):
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         await cur.execute(
             f"UPDATE users SET auto_send = {status} WHERE user_id = {id}"
@@ -169,10 +166,22 @@ async def set_auto_send_status(id: int, status: bool):
 
 
 async def get_count_of_users():
-    async with ac(base_file) as con:
+    async with async_con(base_file) as con:
         cur = await con.cursor()
         count = await cur.execute(
             "SELECT COUNT(user_id) as users FROM users"
         )
         count = await count.fetchone()
         return count[0]
+
+
+async def get_users() -> list:
+    async with async_con(base_file) as con:
+        cur = await con.cursor()
+        count = await cur.execute(
+            "SELECT * FROM users"
+        )
+        count = await count.fetchall()
+        print(count)
+        return count
+

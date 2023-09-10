@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import aiopygismeteo
 from typing import Union
+import logging
 
 
 async def get_weather(id: int, day: int) -> dict[str, Union[int, str]]:
@@ -35,7 +36,7 @@ async def get_weather_now(id: int) -> dict[str, Union[int, str]]:
 
 
 async def city_exists(city: str) -> Union[bool, list]:
-    print(f'Is city {city} exists?')
+    logging.info('Check if city exists', {'query': city})
     gm = aiopygismeteo.Gismeteo()
     try:
         search_results = await gm.search.by_query(city)

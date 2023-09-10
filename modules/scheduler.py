@@ -1,16 +1,16 @@
-import asyncio
 from modules.weather_parser import get_weather
 from modules.get_clothes import what_to_wear
 import texts as tx
 from aiogram import Bot
 import data.data_manager as db
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+import logging
 
 sched: AsyncIOScheduler
 
 
 async def mail_by_city(bot: Bot, ids: list[list[int]], city_id: int, city_name: str) -> None:
-    print('запустили рассылку на единый город')
+    logging.info('start of mail by city', {'city': city_name})
     weather = await get_weather(city_id, day=0)
     text1 = tx.WEATHER_DAY.substitute(day='Сегодня',
                                       city_name=city_name,
@@ -19,13 +19,12 @@ async def mail_by_city(bot: Bot, ids: list[list[int]], city_id: int, city_name: 
                                       descr=weather['descr'])
     text2 = await what_to_wear(weather['comfort'], weather['descr'])
     for id in ids:
-        print('id получателя: ', id[0])
         await bot.send_message(chat_id=id[0], text=text1)
         await bot.send_message(chat_id=id[0], text=text2)
 
 
 async def mail(bot: Bot, time: str) -> None:
-    print('запустили рассылку на единое время')
+    logging.info('start of mail by time', {'time': time})
     cities = await db.get_cities_with_time(time)
     for city in cities:
         print(f'город: {city[0], city[1]}')
@@ -35,18 +34,21 @@ async def mail(bot: Bot, time: str) -> None:
 
 async def scheduler(bot: Bot, times: list[list[str]]) -> None:
     global sched
-    print('запуск scheduler')
+    logging.info('start of scheduler')
     for time in times:
-        print('добавили корутину на время', time[0])
+        logging.info('plan a coroutine by time', {'time': time})
         hours = time[0].split(':')
         try:
             sched.add_job(mail, 'cron', hour=int(hours[0]), minute=int(hours[1]), args=(bot, time[0]),
-                          misfire_grace_time=60, id=time[0])
+                          misfire_grace_time=120, id=time[0])
         except Exception:
             pass
 
 
-async def cancel(bot: Bot, old_time, new_time) -> None:
+async def cancel(old_time, new_time) -> None:
+    global bot
+    logging.info('Change time', {'old_time': old_time,
+                                 'new_time': new_time})
     global sched
     try:
         sched.remove_job(old_time)
@@ -56,9 +58,11 @@ async def cancel(bot: Bot, old_time, new_time) -> None:
     await scheduler(bot, [[new_time], [old_time]])
 
 
-async def start_scheduler(bot: Bot):
-    global sched
-    print('запуск шедулера')
+async def start_scheduler(_bot: Bot):
+    global sched, bot
+    if _bot is not None:
+        bot = _bot
+    logging.info('Configuring scheduler')
     sched = AsyncIOScheduler()
     times = await db.get_times()
     await scheduler(bot, times)

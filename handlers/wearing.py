@@ -7,13 +7,14 @@ from modules.get_clothes import what_to_wear as cloth
 from keyboards.reply_keyboards import std_keyboard
 from aiogram.dispatcher.router import Router
 from aiogram import F
+import logging
 
 wearing_router = Router()
 
 
 @wearing_router.message(F.text == 'Что надеть сейчас?')
 async def what_to_wear_now(msg: types.Message):
-    print('Что надеть сейчас?')
+    logging.info('What to wear now', {id: msg.from_user.id})
     city = await dm.get_city(msg.from_user.id)
     if city is not None:
         weather = await get_weather_now(city['id'])
@@ -28,7 +29,7 @@ async def what_to_wear_now(msg: types.Message):
 
 @wearing_router.message(F.text == 'Что надеть сегодня?')
 async def what_to_wear_today(msg: types.Message):
-    print('Что надеть сегодня?')
+    logging.info('What to wear today', {id: msg.from_user.id})
     city = await dm.get_city(msg.from_user.id)
     if city is not None:
         weather = await get_weather(city['id'], 0)
@@ -45,7 +46,7 @@ async def what_to_wear_today(msg: types.Message):
 
 @wearing_router.message(F.text == 'Что надеть завтра?')
 async def what_to_wear_tomorrow(msg: types.Message):
-    print('Что надеть завтра?')
+    logging.info('What to wear tomorrow', {id: msg.from_user.id})
     city = await dm.get_city(msg.from_user.id)
     if city is not None:
         weather = await get_weather(city['id'], 1)

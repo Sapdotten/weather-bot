@@ -10,6 +10,7 @@ from modules.scheduler import cancel
 from aiogram.dispatcher.router import Router
 from aiogram.filters import Command
 from aiogram import F
+import logging
 
 command_router = Router()
 bot: Bot
@@ -46,13 +47,12 @@ async def change_time(msg: types.Message):
 async def get_time(cbq: types.CallbackQuery):
     """Получает время, введенное пользователем"""
     time = await TimePicker.process_data(cbq)
-    print(f'set_time {time}')
     await cbq.message.answer(text=tx.CHANGED_TIME.substitute(time=time))
     old_time = await db.get_time_server(cbq.from_user.id)
     await db.set_time(cbq.from_user.id, time)
     time = await db.get_time_server(cbq.from_user.id)
     if await db.get_auto_send_status(cbq.from_user.id):
-        await cancel(bot, old_time, time)
+        await cancel(old_time, time)
 
 
 @command_router.message(F.text == 'Изменить город')
@@ -70,7 +70,7 @@ async def switcher(msg: types.Message):
     else:
         await msg.answer(text=tx.CHANGED_AUTO_SEND.substitute(status='включена'))
         time = await db.get_time_server(msg.from_user.id)
-        await cancel(bot, time, time)
+        await cancel(time, time)
 
 
 @command_router.message(Command(commands=["report"]))
@@ -79,6 +79,7 @@ async def report(msg: types.Message):
         await msg.answer(text=f'Пользователей в базе данных: {await db.get_count_of_users()}')
 
 
-def register_bot(_bot: Bot):
-    global bot
-    bot = _bot
+@command_router.message(Command(commands=['get_db']))
+async def get_db(msg: types.Message):
+    if msg.from_user.id == 859743151:
+        await msg.answer(text=str(await db.get_users()))

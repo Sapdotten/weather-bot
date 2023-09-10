@@ -1,21 +1,17 @@
 import asyncio
 import time
-
+import logger
 from aiogram import Bot
-# from aiogram.methods.delete_webhook import DeleteWebhook
 from aiogram import Dispatcher
-from handlers.commands import register_bot
-from data.data_manager import start
 import data.data_manager as db
 from handlers.wearing import wearing_router
-import os
-#from dotenv import load_dotenv
 from modules.scheduler import start_scheduler
 from handlers.commands import command_router
 from aiogram.client.session.aiohttp import AiohttpSession
+import config_manager
 
 
-def register_handlers(dp):
+def register_routers(dp):
     dp.include_routers(command_router, wearing_router)
 
 
@@ -23,18 +19,15 @@ async def main() -> None:
     """
     Entry point
     """
-    #load_dotenv('.env')
-    TOKEN_API = os.getenv('TOKEN_API')
-    #TOKEN_API = os.environ["TOKEN_API"]
-    print('token_api is', TOKEN_API)
-    session = AiohttpSession()
+    config_manager.start()
+    logger.start()
 
-    bot = Bot(TOKEN_API, session=session)
-    register_bot(bot)
-    # storage = MemoryStorage()
+    db.start()
+
+    session = AiohttpSession()
+    bot = Bot(config_manager.token(), session=session)
     dp = Dispatcher()
-    start()
-    register_handlers(dp)
+    register_routers(dp)
     try:
         await bot.delete_webhook()
         await start_scheduler(bot)

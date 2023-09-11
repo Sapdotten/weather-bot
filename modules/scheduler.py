@@ -1,5 +1,5 @@
 from modules.weather_parser import get_weather
-from modules.get_clothes import what_to_wear
+from modules.get_clothes_new import get_clothes as what_to_wear
 import texts as tx
 from aiogram import Bot
 import data.data_manager as db

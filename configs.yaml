@@ -4,4 +4,5 @@ logging:
   out: console
   level: INFO
   file: files/log.log
-env_mode: environ #or environ or getenv
+env_mode: getenv #or environ or getenv
+#hdoijaj

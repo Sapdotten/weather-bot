@@ -10,14 +10,14 @@ from handlers.commands import command_router
 from aiogram.client.session.aiohttp import AiohttpSession
 import config_manager
 
-
+#gfhfhfg
 def register_routers(dp):
     dp.include_routers(command_router, wearing_router)
 
 
 async def main() -> None:
     """
-    Entry point
+    Entry point dfdfd
     """
 
     config_manager.start()

@@ -1,4 +1,6 @@
 .env
 .db
-.idea
+.idea/
 configs.py
+__pycache__/
+.vscode/

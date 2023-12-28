@@ -63,9 +63,10 @@ async def get_clothes(temp: int, descr) -> str:
         if key[0] <= temp <= key[1]:
             _shoes = shoes[key]
     res= _title+'\n\n'
+    res += end+'- '
     if _head != '':
         res += _head +'\n'
-    res +=end+'- '+_up_clothes+'\n'+'- '+_down_clothes+'\n'+'- '+_shoes+'\n'
+    res +=_up_clothes+'\n'+'- '+_down_clothes+'\n'+'- '+_shoes+'\n'
 
     if 'дождь' in descr:
         res += '\nИ не забудьте про зонт!'

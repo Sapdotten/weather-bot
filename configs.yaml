@@ -5,4 +5,4 @@ logging:
   level: INFO
   file: files/log.log
 env_mode: getenv #or environ or getenv
-#hdoijaj
+weather_api_address: weatherapi-com.p.rapidapi.com

@@ -1,9 +1,9 @@
-import http.client
+import aiohttp
 import logging
-import json
 from config_manager import weather_api
 from string import Template
 from typing import Union
+import asyncio
 
 
 class Weather:
@@ -22,30 +22,28 @@ class Weather:
         logging.info("Initializate a weather parser")
 
     @classmethod
-    def _make_query(cls, query: str) -> Union[dict, None]:
+    async def _make_query(cls, query: str) -> Union[dict, None]:
         """
         Makes a queery to api-service
         :param query: text of query
         :return: dict with weather data
         """
-        conn = http.client.HTTPSConnection(cls.api_address)
         headers = {
             'X-RapidAPI-Key': cls.api_key,
             'X-RapidAPI-Host': cls.api_address
         }
-        conn.request("GET",
-                     query,
-                     headers=headers)
-        res = conn.getresponse()
-        data = res.read()
-        data = json.loads(data)
-        if 'error' in data:
-            logging.error("Error in parsing weather", data['error'])
-            return None
-        return data
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url=f"https://{cls.api_address}{query}", headers=headers) as response:
+                data = await response.json()
+                if 'error' in data:
+                    logging.error("Error in parsing weather", data['error'])
+                    return None
+                logging.info('Got an answer from api', {'query': query})
+                return data
 
     @classmethod
-    def get_weather(cls, city: str, weather_time: str) -> Union[dict, None]:
+    async def get_weather(cls, city: str, weather_time: str) -> Union[dict, None]:
         """
         Makes a query to api
         :param city: name of city in enf transliteration or coordinates
@@ -55,7 +53,7 @@ class Weather:
         logging.info("Start a parcing weather", {"city": city,
                                                  "day": weather_time})
         if weather_time == "now":
-            weather = cls._make_query(cls.queries['now'].substitute(city=city))
+            weather = await cls._make_query(cls.queries['now'].substitute(city=city))
             if weather is None:
                 return None
             weather = weather['current']
@@ -65,7 +63,7 @@ class Weather:
                     'wind': weather['wind_kph']
                     }
         elif weather_time == "today":
-            weather = cls._make_query(cls.queries['day'].substitute(city=city, day=1))
+            weather = await cls._make_query(cls.queries['day'].substitute(city=city, day=1))
             if weather is None:
                 return None
             weather = weather['forecast']["forecastday"][0][
@@ -80,7 +78,7 @@ class Weather:
                 'description': weather['condition']['text']
             }
         elif weather_time == "tomorrow":
-            weather = cls._make_query(cls.queries['day'].substitute(city=city, day=2))
+            weather = await cls._make_query(cls.queries['day'].substitute(city=city, day=2))
             if weather is None:
                 return None
             weather = weather['forecast']["forecastday"][1][
@@ -99,15 +97,17 @@ class Weather:
             return None
 
     @classmethod
-    def get_offset(cls, city: str) -> Union[dict, None]:
+    async def get_offset(cls, city: str) -> Union[dict, None]:
         """
         Return a dict with data about searching city
         :param city: name of city or coords
         :return: dict{'city': name of found city in english translition,
                     'timezone': timezone of city}
         """
-        data = cls._make_query(cls.queries['timezone'].substitute(city=city))
+        data = await cls._make_query(cls.queries['timezone'].substitute(city=city))
         if data is None:
             return None
         return {'city': data['location']['name'],
                 'timezone': data['location']['tz_id']}
+
+

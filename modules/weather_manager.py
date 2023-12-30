@@ -34,13 +34,17 @@ class Weather:
         }
 
         async with aiohttp.ClientSession() as session:
-            async with session.get(url=f"https://{cls.api_address}{query}", headers=headers) as response:
-                data = await response.json()
-                if 'error' in data:
-                    logging.error("Error in parsing weather", data['error'])
-                    return None
-                logging.info('Got an answer from api', {'query': query})
-                return data
+            try:
+                async with session.get(url=f"https://{cls.api_address}{query}", headers=headers) as response:
+                    data = await response.json()
+                    if 'error' in data:
+                        logging.error("Error in parsing weather", data['error'])
+                        return None
+                    logging.info('Got an answer from api', {'query': query})
+                    return data
+            except aiohttp.ClientConnectorError as err:
+                logging.error("Can't make a session with api service", {'error': err})
+                return None
 
     @classmethod
     async def get_weather(cls, city: str, weather_time: str) -> Union[dict, None]:
@@ -109,5 +113,6 @@ class Weather:
             return None
         return {'city': data['location']['name'],
                 'timezone': data['location']['tz_id']}
+
 
 

@@ -11,7 +11,8 @@ class Weather:
     api_address: str = None
     queries: dict = {
         "now": Template("/current.json?q=$city&lang=ru"),
-        "day": Template("/forecast.json?q=$city&days=$day&lang=ru")
+        "day": Template("/forecast.json?q=$city&days=$day&lang=ru"),
+        "timezone": Template("/timezone.json?q=$city")
     }
 
     @classmethod
@@ -58,7 +59,8 @@ class Weather:
             if weather is None:
                 return None
             weather = weather['current']
-            return {'temp': weather['temp_c'],
+            return {'temp': {'real': weather['temp_c'],
+                             'feel': weather['feelslike_c']},
                     'description': weather['condition']['text'],
                     'wind': weather['wind_kph']
                     }
@@ -72,7 +74,7 @@ class Weather:
                 'temp': {
                     'min': weather['mintemp_c'],
                     'max': weather['maxtemp_c'],
-                    'feel': weather['avgtemp_c']
+                    'avg': weather['avgtemp_c']
                 },
                 'wind': weather['maxwind_kph'],
                 'description': weather['condition']['text']
@@ -87,10 +89,25 @@ class Weather:
                 'temp': {
                     'min': weather['mintemp_c'],
                     'max': weather['maxtemp_c'],
-                    'feel': weather['avgtemp_c']
+                    'avg': weather['avgtemp_c']
                 },
                 'wind': weather['maxwind_kph'],
                 'description': weather['condition']['text']
             }
         else:
             logging.error("Uncorrect weather_time in try to parsing weather")
+            return None
+
+    @classmethod
+    def get_offset(cls, city: str) -> Union[dict, None]:
+        """
+        Return a dict with data about searching city
+        :param city: name of city or coords
+        :return: dict{'city': name of found city in english translition,
+                    'timezone': timezone of city}
+        """
+        data = cls._make_query(cls.queries['timezone'].substitute(city=city))
+        if data is None:
+            return None
+        return {'city': data['location']['name'],
+                'timezone': data['location']['tz_id']}

@@ -3,7 +3,7 @@ import logging
 from config_manager import weather_api
 from string import Template
 from typing import Union
-import asyncio
+from cache import Cache
 
 
 class Weather:
@@ -16,7 +16,7 @@ class Weather:
     }
 
     @classmethod
-    def init_class(cls):
+    def start(cls):
         cls.api_address = weather_api.address()
         cls.api_key = weather_api.api()
         logging.info("Initializate a weather parser")
@@ -47,7 +47,7 @@ class Weather:
                 return None
 
     @classmethod
-    async def get_weather(cls, city: str, weather_time: str) -> Union[dict, None]:
+    async def _get_weather(cls, city: str, weather_time: str) -> Union[dict, None]:
         """
         Makes a query to api
         :param city: name of city in enf transliteration or coordinates
@@ -66,11 +66,15 @@ class Weather:
                     'description': weather['condition']['text'],
                     'wind': weather['wind_kph']
                     }
-        elif weather_time == "today":
+        else:
+            day = 0
+            if weather_time=="tomorrow":
+                day = 1
+
             weather = await cls._make_query(cls.queries['day'].substitute(city=city, day=1))
             if weather is None:
                 return None
-            weather = weather['forecast']["forecastday"][0][
+            weather = weather['forecast']["forecastday"][day][
                 "day"]
             return {
                 'temp': {
@@ -81,24 +85,17 @@ class Weather:
                 'wind': weather['maxwind_kph'],
                 'description': weather['condition']['text']
             }
-        elif weather_time == "tomorrow":
-            weather = await cls._make_query(cls.queries['day'].substitute(city=city, day=2))
-            if weather is None:
-                return None
-            weather = weather['forecast']["forecastday"][1][
-                "day"]
-            return {
-                'temp': {
-                    'min': weather['mintemp_c'],
-                    'max': weather['maxtemp_c'],
-                    'avg': weather['avgtemp_c']
-                },
-                'wind': weather['maxwind_kph'],
-                'description': weather['condition']['text']
-            }
-        else:
-            logging.error("Uncorrect weather_time in try to parsing weather")
-            return None
+
+
+    @classmethod
+    async def get_weather(cls, city: str, period: str) -> dict:
+        """
+        Return a weather for city in period
+        :param city: a city name in english trancliteration
+        :param period: "now", "tomorrow" or "today"
+        :return: a dict with data
+        """
+        pass
 
     @classmethod
     async def get_offset(cls, city: str) -> Union[dict, None]:
@@ -113,6 +110,3 @@ class Weather:
             return None
         return {'city': data['location']['name'],
                 'timezone': data['location']['tz_id']}
-
-
-

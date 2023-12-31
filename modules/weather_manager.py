@@ -68,7 +68,7 @@ class Weather:
                     }
         else:
             day = 0
-            if weather_time=="tomorrow":
+            if weather_time == "tomorrow":
                 day = 1
 
             weather = await cls._make_query(cls.queries['day'].substitute(city=city, day=1))
@@ -86,7 +86,6 @@ class Weather:
                 'description': weather['condition']['text']
             }
 
-
     @classmethod
     async def get_weather(cls, city: str, period: str) -> dict:
         """
@@ -95,7 +94,13 @@ class Weather:
         :param period: "now", "tomorrow" or "today"
         :return: a dict with data
         """
-        pass
+        data = await Cache.get_weather(city, period)
+        if data:
+            return data
+        else:
+            data = await cls._get_weather(city, period)
+            await Cache.add_weather(city, period, data)
+            return data
 
     @classmethod
     async def get_offset(cls, city: str) -> Union[dict, None]:

@@ -5,6 +5,7 @@ from modules.helpers import incr_time
 import logging
 import config_manager
 
+
 # UPDATE
 # DELETE FROM table_name
 # INSERT INTO table_name
@@ -32,15 +33,15 @@ def start():
         city TEXT NOT NULL,
         time TEXT DEFAULT "8:00",
         auto_send BOOL DEFAULT TRUE,
-        city_id INTEGER NOT NULL DEFAULT NONE,
+        city_id TEXT NOT NULL DEFAULT NONE,
         offset INTEGER
         )""")
         logging.info('database table created')
         con.commit()
 
 
-async def add_user(user_id: int, city: str, city_id: int, offset: int):
-    logging.info('Adding a user', {id: user_id})
+async def add_user(user_id: int, city_ru: str, city_en: str, offset: int):
+    logging.info('Adding a user', {'id': user_id})
     async with async_con(base_file) as con:
         cur = await con.cursor()
         info = await cur.execute(f"""SELECT * FROM users WHERE user_id = {user_id}""")
@@ -48,25 +49,24 @@ async def add_user(user_id: int, city: str, city_id: int, offset: int):
             while True:
                 try:
                     await cur.execute(
-                        f"INSERT INTO users (user_id, city, city_id, offset) VALUES({user_id}, '{city}', {city_id}, {offset})")
+                        f"INSERT INTO users (user_id, city, city_id, offset) VALUES({user_id}, '{city_ru}', '{city_en}', '{offset}')")
                     logging.info('New user has been added', {id: user_id})
 
                     break
-                except Exception:
-                    logging.error("Can't add new user")
+                except Exception as err:
+                    logging.error("Can't add new user", {'error': err})
             await con.commit()
         else:
             while True:
                 try:
                     await cur.execute(
-                        f"""UPDATE users SET city = '{city}', city_id = {city_id}, offset = {offset} WHERE user_id = {user_id}""")
+                        f"""UPDATE users SET city = '{city_ru}', city_id = {city_en}, offset = {offset} WHERE user_id = {user_id}""")
                     logging.info('User already in db, upgrade data', {id: user_id})
 
                     break
                 except Exception:
                     logging.error("Can't update data of user")
             await con.commit()
-
 
 
 async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
@@ -76,8 +76,8 @@ async def get_city(user_id: int) -> Union[None, dict[str, Union[str, int]]]:
         city = await city.fetchone()
         if city is None:
             return None
-        return {'name': city[0],
-                'id': city[1]}
+        return {'city_ru': city[0],
+                'city_en': city[1]}
 
 
 async def get_times() -> list[list[str]]:
@@ -201,4 +201,3 @@ async def get_users() -> list:
         count = await count.fetchall()
         print(count)
         return count
-

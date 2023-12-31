@@ -11,6 +11,8 @@ from aiogram.dispatcher.router import Router
 from aiogram.filters import Command
 from aiogram import F
 import logging
+from modules.user_manager import User
+from modules.weather_manager import Weather
 
 command_router = Router()
 bot: Bot
@@ -27,13 +29,11 @@ async def start(msg: types.Message, state: FSMContext):
 @command_router.message(CityState.city)
 async def get_city(msg: types.Message, state: FSMContext):
     """Получает город пользователя"""
-    msg_city = msg.text
-    city = await city_exists(msg_city)
-    if not city:
-        await msg.answer(tx.ERROR_CITY.substitute(city=msg_city))
+    is_city = await User.add_user(msg.from_user.id, msg.text)
+    if not is_city:
+        await msg.answer(tx.ERROR_CITY.substitute(city=msg.text))
     else:
-        await db.add_user(msg.from_user.id, city[1], city[0], city[2])
-        await msg.answer(text=tx.SAVE_CITY.substitute(city=city[1]), reply_markup=std_keyboard())
+        await msg.answer(text=tx.SAVE_CITY.substitute(city=is_city), reply_markup=std_keyboard())
         await state.clear()
 
 

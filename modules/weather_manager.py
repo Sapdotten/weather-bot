@@ -3,7 +3,7 @@ import logging
 from config_manager import weather_api
 from string import Template
 from typing import Union
-from cache import Cache
+from modules.cache_manager import Cache
 
 
 class Weather:
@@ -43,7 +43,8 @@ class Weather:
                     logging.info('Got an answer from api', {'query': query})
                     return data
             except aiohttp.ClientConnectorError as err:
-                logging.error("Can't make a session with api service", {'error': err})
+                logging.error("Can't make a session with api service",
+                              {'url': f"https://{cls.api_address}{query}", 'error': err})
                 return None
 
     @classmethod
@@ -94,22 +95,26 @@ class Weather:
         :param period: "now", "tomorrow" or "today"
         :return: a dict with data
         """
-        data = await Cache.get_weather(city, period)
-        if data:
-            return data
+        if period != 'now':
+            data = await Cache.get_weather(city, period)
+            if data:
+                return data
+            else:
+                data = await cls._get_weather(city, period)
+                await Cache.add_weather(city, period, data)
+                return data
         else:
-            data = await cls._get_weather(city, period)
-            await Cache.add_weather(city, period, data)
-            return data
+            return await cls._get_weather(city, period)
 
     @classmethod
     async def get_offset(cls, city: str) -> Union[dict, None]:
         """
         Return a dict with data about searching city
-        :param city: name of city or coords
+        :param city: name of city in rus translition or coords
         :return: dict{'city': name of found city in english translition,
                     'timezone': timezone of city}
         """
+        logging.info('Trying to get an offset of city', {'city': city})
         data = await cls._make_query(cls.queries['timezone'].substitute(city=city))
         if data is None:
             return None

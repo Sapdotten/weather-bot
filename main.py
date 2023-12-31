@@ -9,8 +9,9 @@ from modules.scheduler import start_scheduler
 from handlers.commands import command_router
 from aiogram.client.session.aiohttp import AiohttpSession
 import config_manager
+from modules.weather_manager import Weather
 
-#gfhfhfg
+
 def register_routers(dp):
     dp.include_routers(command_router, wearing_router)
 
@@ -22,7 +23,7 @@ async def main() -> None:
 
     config_manager.start()
     logger.start()
-
+    Weather.start()
     db.start()
 
     session = AiohttpSession()
